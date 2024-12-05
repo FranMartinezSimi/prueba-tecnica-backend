@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { UserService } from '../../user-module/service/user.service';
 import { JwtService } from '@nestjs/jwt';
-import { Logger, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Logger, UnauthorizedException, NotFoundException, BadRequestException, HttpStatus, HttpException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 describe('AuthService', () => {
@@ -86,6 +86,40 @@ describe('AuthService', () => {
       await expect(service.login('test@test.com', 'wrongpassword'))
         .rejects
         .toThrow(UnauthorizedException);
+    });
+  });
+
+  describe('register', () => {
+    it('should successfully register a user', async () => {
+      const registerDto = {
+        email: 'test@test.com',
+        password: 'password123'
+      };
+
+      userService.getUserByEmail.mockResolvedValue(null);
+      service.register(registerDto);
+    });
+
+    it('should throw BadRequestException when user already exists', async () => {
+      const registerDto = {
+        email: 'test@test.com',
+        password: 'password123'
+      };
+      userService.getUserByEmail.mockResolvedValue(mockUser);
+      await expect(service.register(registerDto))
+        .rejects
+        .toThrow(new BadRequestException('User already exists'));
+    });
+
+    it('should throw HttpException when an error occurs', async () => {
+      const registerDto = {
+        email: 'test@test.com',
+        password: 'password123'
+      };
+      userService.getUserByEmail.mockRejectedValue(new Error('Database error'));
+      await expect(service.register(registerDto))
+        .rejects
+        .toThrow(new HttpException('Database error', HttpStatus.INTERNAL_SERVER_ERROR));
     });
   });
 });

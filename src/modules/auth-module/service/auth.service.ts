@@ -1,8 +1,9 @@
-import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, HttpStatus, HttpException } from '@nestjs/common';
 import { UserService } from '../../user-module/service/user.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Logger } from '@nestjs/common';
+import { RegisterDto } from '../dto/register.dto';
 
 
 @Injectable()
@@ -57,13 +58,40 @@ export class AuthService{
       };
 
     } catch (error) {
-      this.logger.error('Error logging in');
+      this.logger.error(`Error en login: ${error.message}`);
+      
       if (error instanceof NotFoundException || 
           error instanceof UnauthorizedException) {
         throw error;
       }
-      this.logger.error('Login failed');
-      throw new UnauthorizedException('Login failed');
+      
+      console.error('Error completo:', error);
+      
+      throw new HttpException(
+        `Error en login: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+}
+
+  async createHashPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+  }
+
+  async register(register: RegisterDto): Promise<void> {
+    this.logger.log('Registering user');
+    try {
+      const hashedPassword = await this.createHashPassword(register.password);
+      this.logger.log('Creating user');
+      await this.userService.createUser({
+        email: register.email, 
+        password: hashedPassword,
+      });
+      this.logger.log('User created');
+    } catch (error) {
+      this.logger.error('Error registering user');
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

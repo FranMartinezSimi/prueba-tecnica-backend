@@ -10,7 +10,16 @@ describe('AuthController', () => {
   let logger: Logger;
 
   const mockAuthService = {
-    login: jest.fn()
+    login: jest.fn().mockResolvedValue({
+      status: 'success',
+      statusCode: 200,
+      message: 'Inicio de sesión exitoso',
+      data: {
+        token: 'mock-token',
+        user: { id: 1, email: 'test@test.com' }
+      }
+    }),
+    register: jest.fn()
   };
 
   const mockLogger = {
@@ -47,17 +56,53 @@ describe('AuthController', () => {
         email: 'test@test.com',
         password: 'password123'
       };
-      const expectedResponse = {
+      const serviceResponse = {
         token: 'mock-token',
         user: { id: 1, email: 'test@test.com' }
       };
-      mockAuthService.login.mockResolvedValue(expectedResponse);
-
+      mockAuthService.login.mockResolvedValue(serviceResponse);
+      const expectedResponse = {
+        status: 'success',
+        statusCode: 200,
+        message: 'Inicio de sesión exitoso',
+        data: serviceResponse
+      };
       const result = await controller.login(loginDto);
-
       expect(mockLogger.log).toHaveBeenCalledWith('Login request received');
       expect(mockAuthService.login).toHaveBeenCalledWith(loginDto.email, loginDto.password);
       expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('register', () => {
+    it('debería registrar un nuevo usuario exitosamente', async () => {
+      const expectedResponse = { id: 1, email: 'test@test.com' };
+      mockAuthService.register.mockResolvedValue(expectedResponse);
+      const mockRegisterDto = {
+        email: 'test@test.com',
+        password: 'password123'
+      };
+      const result = await controller.register(mockRegisterDto);
+      expect(logger.log).toHaveBeenCalledWith('Register request received');
+      expect(authService.register).toHaveBeenCalledWith(mockRegisterDto);
+      expect(result).toEqual({
+        status: 'success',
+        statusCode: 200,
+        message: 'Usuario registrado exitosamente',
+        data: expectedResponse
+      });
+    });
+
+    it('debería manejar errores durante el registro', async () => {
+      const error = new Error('Error de registro');
+      mockAuthService.register.mockRejectedValue(error);
+      const mockRegisterDto = {
+        email: 'test@test.com',
+        password: 'password123'
+      };
+      await expect(controller.register(mockRegisterDto)).rejects.toThrow(error);
+      expect(logger.log).toHaveBeenCalledWith('Register request received');
+      expect(authService.register).toHaveBeenCalledWith(mockRegisterDto);
     });
   });
 });

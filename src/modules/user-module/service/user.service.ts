@@ -3,6 +3,7 @@ import { User } from '../../../entities/User.entity';
 import { Response } from '../../../assets/response';
 import { IUserRepository } from '../interfaces/user.interface';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import { RegisterDto } from '@/modules/auth-module/dto/register.dto';
 
 @Injectable()
 export class UserService {
@@ -26,11 +27,16 @@ export class UserService {
     }
   }
 
-  async createUser(user: User): Promise<InsertResult> {
+  async createUser(user: RegisterDto): Promise<InsertResult> {
     this.logger.log('Creating user');
     try {
-      const result = await this.userRepository.createUser(user);
-      if (result.raw.length === 0) {
+      const result = await this.userRepository.createUser({
+        email: user.email,
+        password: user.password,
+        id: 0,
+        updatedAt: undefined
+      });
+      if (result?.raw?.length === 0) {
         throw new BadRequestException('User not created');
       }
       this.logger.log('Successfully created user');

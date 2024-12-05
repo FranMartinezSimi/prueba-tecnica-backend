@@ -1,28 +1,25 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from './user.service';
+import { Logger } from '@nestjs/common';
+import { User } from '../../../entities/User.entity';
 
 describe('UserService', () => {
   let service: UserService;
-  
-  const mockUserRepository = {
-    findByEmail: jest.fn(),
-    createUser: jest.fn(),
-    updateUser: jest.fn(),
-    deleteUser: jest.fn(),
-  };
-
-  const mockUser = {
-    id: 1,
-    email: 'test@test.com',
-    password: 'password',
-    createdAt: new Date(),
-    updatedAt: new Date()
-  };
+  let mockUserRepository;
 
   beforeEach(async () => {
+    mockUserRepository = {
+      findByEmail: jest.fn(),
+      createUser: jest.fn(),
+      updateUser: jest.fn(),
+      findById: jest.fn(),
+      deleteUser: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
+        Logger,
         {
           provide: 'USER_REPOSITORY',
           useValue: mockUserRepository,
@@ -33,59 +30,92 @@ describe('UserService', () => {
     service = module.get<UserService>(UserService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
   describe('getUserByEmail', () => {
-    it('should return a user', async () => {
+    it('debería encontrar un usuario por email', async () => {
+      const mockUser = { id: 1, email: 'test@test.com' } as User;
       mockUserRepository.findByEmail.mockResolvedValue(mockUser);
-      const result = await service.getUserByEmail(mockUser.email);
+
+      const result = await service.getUserByEmail('test@test.com');
       expect(result).toEqual(mockUser);
     });
 
-    it('should throw an error if user not found', async () => {
+    it('debería lanzar error si el usuario no existe', async () => {
       mockUserRepository.findByEmail.mockResolvedValue(null);
-      await expect(service.getUserByEmail(mockUser.email)).rejects.toThrow('User not found');
+
+      await expect(service.getUserByEmail('test@test.com'))
+        .rejects
+        .toThrow('User not found');
     });
   });
 
   describe('createUser', () => {
-    it('should create a user', async () => {
-      mockUserRepository.createUser.mockResolvedValue(mockUser);
+    it('debería crear un usuario exitosamente', async () => {
+      const mockUser = { id: 1, email: 'test@test.com' } as User;
+      const mockResult = { raw: [{ id: 1 }] };
+      
+      mockUserRepository.createUser.mockResolvedValue(mockResult);
+
       const result = await service.createUser(mockUser);
-      expect(result).toBeDefined();
+      expect(result).toEqual(mockResult);
     });
 
-    it('should throw an error if user creation fails', async () => {
-      mockUserRepository.createUser.mockRejectedValue(new Error('User creation failed'));
-      await expect(service.createUser(mockUser)).rejects.toThrow('User creation failed');
+    it('debería lanzar error si no se crea el usuario', async () => {
+      const mockUser = { id: 1, email: 'test@test.com' } as User;
+      mockUserRepository.createUser.mockResolvedValue({ raw: [] });
+
+      await expect(service.createUser(mockUser))
+        .rejects
+        .toThrow('User not created');
     });
   });
 
   describe('updateUser', () => {
-    it('should update a user', async () => {
-      mockUserRepository.updateUser.mockResolvedValue(mockUser);
+    it('debería actualizar un usuario exitosamente', async () => {
+      const mockUser = { id: 1, email: 'test@test.com' } as User;
+      const mockResult = { raw: [{ id: 1 }] };
+      
+      mockUserRepository.findById.mockResolvedValue(mockUser);
+      mockUserRepository.updateUser.mockResolvedValue(mockResult);
+
       const result = await service.updateUser(mockUser);
-      expect(result).toBeDefined();
+      expect(result).toEqual(mockResult);
     });
 
-    it('should throw an error if user update fails', async () => {
-      mockUserRepository.updateUser.mockRejectedValue(new Error('User update failed'));
-      await expect(service.updateUser(mockUser)).rejects.toThrow('User update failed');
+    it('debería lanzar error si el usuario no existe', async () => {
+      const mockUser = { id: 1, email: 'test@test.com' } as User;
+      mockUserRepository.findById.mockResolvedValue(null);
+
+      await expect(service.updateUser(mockUser))
+        .rejects
+        .toThrow('User not found');
+    });
+
+    it('debería lanzar error si la actualización falla', async () => {
+      const mockUser = { id: 1, email: 'test@test.com' } as User;
+      mockUserRepository.findById.mockResolvedValue(mockUser);
+      mockUserRepository.updateUser.mockResolvedValue({ raw: [] });
+
+      await expect(service.updateUser(mockUser))
+        .rejects
+        .toThrow('User not updated');
     });
   });
 
   describe('deleteUser', () => {
-    it('should delete a user', async () => {
-      mockUserRepository.deleteUser.mockResolvedValue(mockUser);
-      const result = await service.deleteUser(mockUser.id);
-      expect(result).toBeDefined();
+    it('debería eliminar un usuario exitosamente', async () => {
+      const mockResult = { raw: [{ id: 1 }] };
+      mockUserRepository.deleteUser.mockResolvedValue(mockResult);
+
+      const result = await service.deleteUser(1);
+      expect(result).toEqual(mockResult);
     });
 
-    it('should throw an error if user deletion fails', async () => {
-      mockUserRepository.deleteUser.mockRejectedValue(new Error('User deletion failed'));
-      await expect(service.deleteUser(mockUser.id)).rejects.toThrow('User deletion failed');
+    it('debería lanzar error si la eliminación falla', async () => {
+      mockUserRepository.deleteUser.mockResolvedValue({ raw: [] });
+
+      await expect(service.deleteUser(1))
+        .rejects
+        .toThrow('User not deleted');
     });
   });
 });

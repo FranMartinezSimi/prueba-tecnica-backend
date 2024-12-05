@@ -1,50 +1,78 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { User } from '../../../entities/User.entity';
 import { Response } from '../../../assets/response';
 import { IUserRepository } from '../interfaces/user.interface';
+import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
 
 @Injectable()
 export class UserService {
   constructor(
     @Inject('USER_REPOSITORY')
-    private userRepository: IUserRepository) {}
+    private userRepository: IUserRepository,
+    private readonly logger: Logger
+  ) {}
 
   async getUserByEmail(email: string): Promise<User> {
+    this.logger.log(`Finding user by email: ${email}`);
     try {
       const user = await this.userRepository.findByEmail(email);
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundException('User not found');
       }
       return user;
     } catch (error) {
-      throw new Error(error.message);
+      this.logger.error(`Error finding user by email: ${email}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async createUser(user: User): Promise<Response> {
+  async createUser(user: User): Promise<InsertResult> {
+    this.logger.log('Creating user');
     try {
-      await this.userRepository.createUser(user);
-      return new Response('success', 'User created successfully', null);
+      const result = await this.userRepository.createUser(user);
+      if (result.raw.length === 0) {
+        throw new BadRequestException('User not created');
+      }
+      this.logger.log('Successfully created user');
+      return result;
     } catch (error) {
-      throw new Error(error.message);
+      this.logger.error(`Error creating user: ${error}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async updateUser(user: User): Promise<Response> {
+  async updateUser(user: User): Promise<UpdateResult> {
+    this.logger.log('Updating user');
     try {
-      await this.userRepository.updateUser(user);
-      return new Response('success', 'User updated successfully', null);
+      const existingUser = await this.userRepository.findById(user.id);
+      if (!existingUser) {
+        throw new NotFoundException('User not found');
+      }
+      const result = await this.userRepository.updateUser(user);
+      if (result.raw.length === 0) {
+        throw new BadRequestException('User not updated');
+      }
+      this.logger.log('Successfully updated user');
+      return result;
     } catch (error) {
-      throw new Error(error.message);
+      this.logger.error(`Error updating user: ${error}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async deleteUser(id: number): Promise<Response> {
+  async deleteUser(id: number): Promise<DeleteResult> {
+    this.logger.log(`Deleting user by id: ${id}`);
     try {
-      await this.userRepository.deleteUser(id);
-      return new Response('success', 'User deleted successfully', null);
+
+      const result = await this.userRepository.deleteUser(id);
+      if (result.raw.length === 0) {
+        throw new BadRequestException('User not deleted');
+      }
+      this.logger.log('Successfully deleted user');
+      return result;
     } catch (error) {
-      throw new Error(error.message);
+      this.logger.error(`Error deleting user by id: ${id}`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

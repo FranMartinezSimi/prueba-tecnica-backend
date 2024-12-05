@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserService } from './service/user.service';
 import { UserRepository } from './repository/user.repository';
@@ -13,7 +13,8 @@ import { User } from '@/entities/User.entity';
     {
       provide: 'USER_REPOSITORY',
       useClass: UserRepository,
-    }
+    },
+    Logger
   ],
   exports: [UserService, 'USER_REPOSITORY'],
 })

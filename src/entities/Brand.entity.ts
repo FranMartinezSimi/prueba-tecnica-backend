@@ -9,7 +9,7 @@ export class Brand {
   @Column({ unique: true, nullable: false })
   name: string;
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   logo: string;
 
   @OneToMany(() => Perfume, (perfume) => perfume.brand)

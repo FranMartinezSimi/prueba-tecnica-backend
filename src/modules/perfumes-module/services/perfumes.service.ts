@@ -4,12 +4,16 @@ import { Perfume } from "@/entities/Perfume.entity";
 import { CreatePerfumeDto } from "../dto/createPerfume.dto";
 import { DeleteResult, InsertResult, UpdateResult } from "typeorm";
 import { UpdatePerfumeDto } from "../dto/updatePerfume.dto";
+import { InventoryRepositoryInterface } from "@/modules/inventory-module/interface/inventory.repository.interface";
+import { PerfumeSize } from "../../../entities/Inventory.entity";
 
 @Injectable()
 export class PerfumesService {
   constructor(
     @Inject('PERFUMES_REPOSITORY')
     private perfumesRepository: IPerfumesRepository,
+    @Inject('INVENTORY_REPOSITORY')
+    private inventoryRepository: InventoryRepositoryInterface,
     private readonly logger: Logger
   ) {}
 
@@ -67,6 +71,15 @@ export class PerfumesService {
       }
 
       const result = await this.perfumesRepository.createPerfume(perfume);
+
+      await Promise.all(Object.values(PerfumeSize).map(async (size) => {
+        await this.inventoryRepository.createInventory({
+          perfume: result.identifiers[0].id,
+          size: size as PerfumeSize,
+          stock: 0,
+          price: 0,
+        });
+      }));
       this.logger.log(`Perfume created successfully with id: ${result.identifiers[0].id}`);
       return result;
     } catch (error) {

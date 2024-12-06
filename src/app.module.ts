@@ -11,6 +11,7 @@ import { Brand } from './entities/Brand.entity';
 import { Inventory } from './entities/Inventory.entity';
 import { Perfume } from './entities/Perfume.entity';
 import { UserModule } from './modules/user-module/user.module';
+import { InventoryModule } from './modules/inventory-module/inventory.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { UserModule } from './modules/user-module/user.module';
       connectTimeout: 60000,
     }),
     UserModule,
+    InventoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

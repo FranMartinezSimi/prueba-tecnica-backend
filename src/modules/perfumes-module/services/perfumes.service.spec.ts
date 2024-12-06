@@ -8,6 +8,7 @@ import { UpdatePerfumeDto } from '../dto/updatePerfume.dto';
 describe('PerfumesService', () => {
   let service: PerfumesService;
   let mockPerfumesRepository;
+  let mockInventoryRepository;
   let mockLogger;
 
   const mockPerfume: Perfume = {
@@ -43,6 +44,10 @@ describe('PerfumesService', () => {
       deletePerfume: jest.fn(),
     };
 
+    mockInventoryRepository = {
+      createInventory: jest.fn(),
+    };
+
     mockLogger = {
       log: jest.fn(),
       error: jest.fn(),
@@ -54,6 +59,10 @@ describe('PerfumesService', () => {
         {
           provide: 'PERFUMES_REPOSITORY',
           useValue: mockPerfumesRepository,
+        },
+        {
+          provide: 'INVENTORY_REPOSITORY',
+          useValue: mockInventoryRepository,
         },
         {
           provide: Logger,
@@ -103,16 +112,40 @@ describe('PerfumesService', () => {
 
   describe('createPerfume', () => {
     it('should create a new perfume', async () => {
+      const mockInsertResult = {
+        identifiers: [{ id: 1 }],
+        generatedMaps: [],
+        raw: []
+      };
+      
       mockPerfumesRepository.findPerfumeByName.mockResolvedValue(null);
-      mockPerfumesRepository.createPerfume.mockResolvedValue(mockPerfume);
+      mockPerfumesRepository.createPerfume.mockResolvedValue(mockInsertResult);
+      mockInventoryRepository.createInventory.mockResolvedValue();
+  
+      const result = await service.createPerfume(createPerfumeDto);
+      
+      expect(result).toEqual(mockInsertResult);
+      expect(mockInventoryRepository.createInventory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          perfume: 1,
+          stock: 0,
+          price: 0
+        })
+      );
     });
-
+  
+    it('should throw if perfume name is empty', async () => {
+      const invalidDto = { ...createPerfumeDto, name: '' };
+      await expect(service.createPerfume(invalidDto))
+        .rejects.toThrow('Perfume name is required');
+    });
+  
     it('should throw if perfume already exists', async () => {
       mockPerfumesRepository.findPerfumeByName.mockResolvedValue(mockPerfume);
       await expect(service.createPerfume(createPerfumeDto))
         .rejects.toThrow(ConflictException);
     });
-
+  
     it('should throw if error when creating perfume', async () => {
       mockPerfumesRepository.findPerfumeByName.mockResolvedValue(null);
       mockPerfumesRepository.createPerfume.mockRejectedValue(new Error('Error when creating perfume'));

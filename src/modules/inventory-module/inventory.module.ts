@@ -5,7 +5,7 @@ import { InventoryRepository } from './repository/inventory.repository';
 import { InventoryService } from './service/inventory.service';
 import { InventoryController } from './controller/inventory.controller';
 import { PerfumesModule } from '../perfumes-module/perfumes.module';
-import { PerfumesRepository } from '../perfumes-module/repository/perfumes.repository';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -19,6 +19,7 @@ import { PerfumesRepository } from '../perfumes-module/repository/perfumes.repos
       provide: 'INVENTORY_REPOSITORY',
       useClass: InventoryRepository,
     },
+    JwtService,
     Logger
   ],
   exports: [

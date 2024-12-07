@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { InventoryController } from './inventory.controller';
 import { InventoryService } from '../service/inventory.service';
 import { HttpStatus, Logger } from '@nestjs/common';
-import { Response } from '../../../assets/response';
 import { PerfumeSize } from '../../../entities/Inventory.entity';
+import { JwtService } from '@nestjs/jwt';
 
 describe('InventoryController', () => {
   let controller: InventoryController;
@@ -31,6 +31,7 @@ describe('InventoryController', () => {
       providers: [
         { provide: InventoryService, useValue: mockInventoryService },
         { provide: Logger, useValue: mockLogger },
+        JwtService,
       ],
     }).compile();
 

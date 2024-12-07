@@ -12,6 +12,7 @@ import { Inventory } from './entities/Inventory.entity';
 import { Perfume } from './entities/Perfume.entity';
 import { UserModule } from './modules/user-module/user.module';
 import { InventoryModule } from './modules/inventory-module/inventory.module';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -40,6 +41,6 @@ import { InventoryModule } from './modules/inventory-module/inventory.module';
     InventoryModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, JwtService],
 })
 export class AppModule {}

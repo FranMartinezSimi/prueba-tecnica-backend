@@ -7,7 +7,7 @@ import { CreatePerfumeDto } from '../dto/createPerfume.dto';
 import { UpdatePerfumeDto } from '../dto/updatePerfume.dto';
 import { HttpStatus, Logger } from '@nestjs/common';
 import { Response } from '../../../assets/response';
-
+import { JwtService } from '@nestjs/jwt';
 describe('PerfumesController', () => {
   let controller: PerfumesController;
   let service: PerfumesService;
@@ -49,6 +49,7 @@ describe('PerfumesController', () => {
       providers: [
         { provide: PerfumesService, useValue: mockPerfumesService },
         { provide: Logger, useValue: { log: jest.fn() } },
+        JwtService,
       ],
     }).compile();
 

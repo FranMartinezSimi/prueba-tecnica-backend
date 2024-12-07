@@ -1,10 +1,13 @@
-import { Controller, Get, Param, Query, Put, Logger, HttpStatus, Body } from '@nestjs/common';
+import { Controller, Get, Param, Query, Put, Logger, HttpStatus, Body, UseGuards } from '@nestjs/common';
 import { InventoryService } from '../service/inventory.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from '../../../assets/response';
 import { UpdateInventoryData } from '../dto/UpdateInventory.dto';
 import { PerfumeSize } from '@/entities/Inventory.entity';
+import { AuthGuard } from '../../../guards/Auth.guard';
 
+
+@UseGuards(AuthGuard)
 @ApiTags('Inventario')
 @Controller('inventory')
 export class InventoryController {

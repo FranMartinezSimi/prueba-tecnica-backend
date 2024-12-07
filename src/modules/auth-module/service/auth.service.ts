@@ -96,7 +96,7 @@ export class AuthService{
       this.logger.log('User created');
     } catch (error) {
       this.logger.error('Error registering user');
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new BadRequestException(error.message);
     }
   }
 }

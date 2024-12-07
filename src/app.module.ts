@@ -4,7 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModuleModule } from './modules/auth-module/auth-module.module';
 import { BrandsModuleModule } from './modules/brands-module/brands-module.module';
-import { PerfumesModuleModule } from './modules/perfumes-module/perfumes.module';
+import { PerfumesModule } from './modules/perfumes-module/perfumes.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/User.entity';
 import { Brand } from './entities/Brand.entity';
@@ -17,7 +17,7 @@ import { InventoryModule } from './modules/inventory-module/inventory.module';
   imports: [
     AuthModuleModule,
     BrandsModuleModule,
-    PerfumesModuleModule,
+    PerfumesModule,
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'mysql',

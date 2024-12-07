@@ -1,11 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { DeleteResult, InsertResult, LessThan, Raw, Repository, UpdateResult } from "typeorm";
 import { Inventory, PerfumeSize } from "../../../entities/Inventory.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { InventoryRepositoryInterface } from "../interface/inventory.repository.interface";
 import { UpdateInventoryData } from "../dto/UpdateInventory.dto";
 import { CreateInventoryData } from "../dto/CreateInventory.dto";
-import { Like } from "typeorm";
 import { Perfume } from "@/entities/Perfume.entity";
 
 
@@ -14,7 +13,7 @@ export class InventoryRepository extends Repository<Inventory> implements Invent
   constructor(
     @InjectRepository(Inventory)
     private inventoryRepository: Repository<Inventory>,
-    @InjectRepository(Perfume)
+    @Inject('PERFUMES_REPOSITORY')
     private perfumeRepository: Repository<Perfume>,
     private readonly logger: Logger,
   ) {

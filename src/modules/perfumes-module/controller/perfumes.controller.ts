@@ -1,11 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, HttpStatus, HttpCode, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, HttpStatus, HttpCode, Logger, UseGuards } from '@nestjs/common';
 import { PerfumesService } from '../services/perfumes.service';
 import { CreatePerfumeDto } from '../dto/createPerfume.dto';
 import { UpdatePerfumeDto } from '../dto/updatePerfume.dto';
 import { Response } from '../../../assets/response';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '../../../guards/Auth.guard';
 
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-
+@UseGuards(AuthGuard)
+@ApiTags('Perfumes')
 @Controller('perfumes')
 export class PerfumesController {
   constructor(private readonly perfumesService: PerfumesService, private readonly logger: Logger) {}

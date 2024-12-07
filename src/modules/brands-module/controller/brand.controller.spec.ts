@@ -5,6 +5,7 @@ import { Logger } from '@nestjs/common';
 import { CreateBrandDto } from '../dto/create.dto';
 import { Brand } from '../../../entities/Brand.entity';
 import { UpdateBrandDto } from '../dto/update.dto';
+import { JwtService } from '@nestjs/jwt';
 
 describe('BrandsController', () => {
   let controller: BrandsController;
@@ -47,6 +48,7 @@ describe('BrandsController', () => {
       providers: [
         { provide: BrandsService, useValue: mockBrandsService },
         { provide: Logger, useValue: mockLogger },
+        JwtService,
       ],
     }).compile();
 

@@ -6,7 +6,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log'],
   });
-
+  app.enableCors();
   const config = new DocumentBuilder()
     .setTitle('Prueba técnica')
     .setDescription('API para la prueba técnica de NestJS')

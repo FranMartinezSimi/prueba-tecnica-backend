@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, Logger, HttpStatus, HttpCode, UseGuards } from '@nestjs/common';
 import { BrandsService } from '../services/brands.service';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from '../../../assets/response';
 import { CreateBrandDto } from '../dto/create.dto';
 import { UpdateBrandDto } from '../dto/update.dto';
@@ -8,6 +8,7 @@ import { AuthGuard } from '../../../guards/Auth.guard';
 
 
 @UseGuards(AuthGuard)
+@ApiBearerAuth()
 @ApiTags('Brands')
 @Controller('brands')
 export class BrandsController {

@@ -1,20 +1,29 @@
-import { Injectable, UnauthorizedException, NotFoundException, HttpStatus, HttpException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  NotFoundException,
+  HttpStatus,
+  HttpException,
+  BadRequestException,
+} from '@nestjs/common';
 import { UserService } from '../../user-module/service/user.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Logger } from '@nestjs/common';
 import { RegisterDto } from '../dto/register.dto';
 
-
 @Injectable()
-export class AuthService{
+export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
-    private logger: Logger
+    private logger: Logger,
   ) {}
 
-  private async verifyPassword(plainTextPassword: string, hashedPassword: string): Promise<boolean> {
+  private async verifyPassword(
+    plainTextPassword: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
     this.logger.log('Verifying password');
     try {
       const isMatch = await bcrypt.compare(plainTextPassword, hashedPassword);
@@ -44,9 +53,9 @@ export class AuthService{
       this.logger.log('Verifying password');
       await this.verifyPassword(password, user.password);
 
-      const payload: JwtPayload = { 
-        id: user.id, 
-        email: user.email 
+      const payload: JwtPayload = {
+        id: user.id,
+        email: user.email,
       };
       this.logger.log('Generating JWT');
       return {
@@ -54,25 +63,23 @@ export class AuthService{
         user: {
           id: user.id,
           email: user.email,
-        }
+        },
       };
-
     } catch (error) {
-      this.logger.error(`Error en login: ${error.message}`);
-      
-      if (error instanceof NotFoundException || 
-          error instanceof UnauthorizedException) {
+      this.logger.error(`Login error: ${error.message}`);
+
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException
+      ) {
         throw error;
       }
-      
-      console.error('Error completo:', error);
-      
       throw new HttpException(
-        `Error en login: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR
+        `Login error: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-}
+  }
 
   async createHashPassword(password: string): Promise<string> {
     const salt = await bcrypt.genSalt(10);
@@ -90,7 +97,7 @@ export class AuthService{
       const hashedPassword = await this.createHashPassword(register.password);
       this.logger.log('Creating user');
       await this.userService.createUser({
-        email: register.email, 
+        email: register.email,
         password: hashedPassword,
       });
       this.logger.log('User created');

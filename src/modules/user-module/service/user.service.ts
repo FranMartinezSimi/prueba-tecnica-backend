@@ -1,6 +1,13 @@
-import { BadRequestException, HttpException, HttpStatus, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { User } from '../../../entities/User.entity';
-import { Response } from '../../../assets/response';
 import { IUserRepository } from '../interfaces/user.interface';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
 import { RegisterDto } from '@/modules/auth-module/dto/register.dto';
@@ -10,7 +17,7 @@ export class UserService {
   constructor(
     @Inject('USER_REPOSITORY')
     private userRepository: IUserRepository,
-    private readonly logger: Logger
+    private readonly logger: Logger,
   ) {}
 
   async getUserByEmail(email: string): Promise<User> {
@@ -34,7 +41,7 @@ export class UserService {
         email: user.email,
         password: user.password,
         id: 0,
-        updatedAt: undefined
+        updatedAt: undefined,
       });
       if (result?.raw?.length === 0) {
         throw new BadRequestException('User not created');
@@ -69,7 +76,6 @@ export class UserService {
   async deleteUser(id: number): Promise<DeleteResult> {
     this.logger.log(`Deleting user by id: ${id}`);
     try {
-
       const result = await this.userRepository.deleteUser(id);
       if (result.raw.length === 0) {
         throw new BadRequestException('User not deleted');

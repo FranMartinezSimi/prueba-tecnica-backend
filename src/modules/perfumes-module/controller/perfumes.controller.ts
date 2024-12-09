@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, HttpStatus, HttpCode, Logger, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  HttpStatus,
+  HttpCode,
+  Logger,
+  UseGuards,
+} from '@nestjs/common';
 import { PerfumesService } from '../services/perfumes.service';
 import { CreatePerfumeDto } from '../dto/createPerfume.dto';
 import { UpdatePerfumeDto } from '../dto/updatePerfume.dto';
@@ -10,7 +22,10 @@ import { AuthGuard } from '../../../guards/Auth.guard';
 @ApiTags('Perfumes')
 @Controller('perfumes')
 export class PerfumesController {
-  constructor(private readonly perfumesService: PerfumesService, private readonly logger: Logger) {}
+  constructor(
+    private readonly perfumesService: PerfumesService,
+    private readonly logger: Logger,
+  ) {}
 
   @HttpCode(HttpStatus.OK)
   @Get()
@@ -19,7 +34,11 @@ export class PerfumesController {
   async findAllPerfumes(): Promise<Response> {
     this.logger.log('Finding all perfumes');
     const perfumes = await this.perfumesService.findAllPerfumes();
-    return Response.success('Perfumes obtenidos exitosamente', perfumes, HttpStatus.OK);
+    return Response.success(
+      'Perfumes obtenidos exitosamente',
+      perfumes,
+      HttpStatus.OK,
+    );
   }
 
   @HttpCode(HttpStatus.OK)
@@ -29,7 +48,11 @@ export class PerfumesController {
   async findPerfumeById(@Param('id') id: number): Promise<Response> {
     this.logger.log(`Finding perfume by id: ${id}`);
     const perfume = await this.perfumesService.findPerfumeById(id);
-    return Response.success('Perfume obtenido exitosamente', perfume, HttpStatus.OK);
+    return Response.success(
+      'Perfume obtenido exitosamente',
+      perfume,
+      HttpStatus.OK,
+    );
   }
 
   @HttpCode(HttpStatus.OK)
@@ -39,17 +62,31 @@ export class PerfumesController {
   async createPerfume(@Body() perfume: CreatePerfumeDto): Promise<Response> {
     this.logger.log(`Creating perfume: ${JSON.stringify(perfume)}`);
     await this.perfumesService.createPerfume(perfume);
-    return Response.success('Perfume created successfully', null, HttpStatus.CREATED);
+    return Response.success(
+      'Perfume created successfully',
+      null,
+      HttpStatus.CREATED,
+    );
   }
 
   @HttpCode(HttpStatus.OK)
   @Put(':id')
   @ApiOperation({ summary: 'Actualizar un perfume' })
   @ApiResponse({ status: 200, description: 'Perfume actualizado exitosamente' })
-  async updatePerfume(@Param('id') id: number, @Body() perfume: UpdatePerfumeDto): Promise<Response> {
+  async updatePerfume(
+    @Param('id') id: number,
+    @Body() perfume: UpdatePerfumeDto,
+  ): Promise<Response> {
     this.logger.log(`Updating perfume: ${JSON.stringify(perfume)}`);
-    const updatedPerfume = await this.perfumesService.updatePerfume(id, perfume);
-    return Response.success('Perfume actualizado exitosamente', updatedPerfume, HttpStatus.OK);
+    const updatedPerfume = await this.perfumesService.updatePerfume(
+      id,
+      perfume,
+    );
+    return Response.success(
+      'Perfume actualizado exitosamente',
+      updatedPerfume,
+      HttpStatus.OK,
+    );
   }
 
   @HttpCode(HttpStatus.OK)
@@ -59,7 +96,10 @@ export class PerfumesController {
   async deletePerfume(@Param('id') id: number): Promise<Response> {
     this.logger.log(`Deleting perfume by id: ${id}`);
     const deletedPerfume = await this.perfumesService.deletePerfume(id);
-    return Response.success('Perfume eliminado exitosamente', deletedPerfume, HttpStatus.OK);
+    return Response.success(
+      'Perfume eliminado exitosamente',
+      deletedPerfume,
+      HttpStatus.OK,
+    );
   }
 }
-

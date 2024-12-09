@@ -13,7 +13,11 @@ export class PerfumesRepository extends Repository<Perfume> implements IPerfumes
     private perfumeRepository: Repository<Perfume>,
     private readonly logger: Logger,
   ) {
-    super(perfumeRepository.target, perfumeRepository.manager, perfumeRepository.queryRunner);
+    super(
+      perfumeRepository.target,
+      perfumeRepository.manager,
+      perfumeRepository.queryRunner,
+    );
   }
 
   async findAllPerfumes(): Promise<Perfume[]> {

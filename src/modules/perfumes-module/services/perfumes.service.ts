@@ -1,11 +1,19 @@
-import { Injectable, Logger, NotFoundException, HttpException, HttpStatus, Inject, ConflictException } from "@nestjs/common";
-import { IPerfumesRepository } from "../interfaces/perfumes.repository.interface";
-import { Perfume } from "@/entities/Perfume.entity";
-import { CreatePerfumeDto } from "../dto/createPerfume.dto";
-import { DeleteResult, InsertResult, UpdateResult } from "typeorm";
-import { UpdatePerfumeDto } from "../dto/updatePerfume.dto";
-import { InventoryRepositoryInterface } from "@/modules/inventory-module/interface/inventory.repository.interface";
-import { PerfumeSize } from "../../../entities/Inventory.entity";
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  ConflictException,
+} from '@nestjs/common';
+import { IPerfumesRepository } from '../interfaces/perfumes.repository.interface';
+import { Perfume } from '@/entities/Perfume.entity';
+import { CreatePerfumeDto } from '../dto/createPerfume.dto';
+import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import { UpdatePerfumeDto } from '../dto/updatePerfume.dto';
+import { InventoryRepositoryInterface } from '@/modules/inventory-module/interface/inventory.repository.interface';
+import { PerfumeSize } from '../../../entities/Inventory.entity';
 
 @Injectable()
 export class PerfumesService {
@@ -14,7 +22,7 @@ export class PerfumesService {
     private perfumesRepository: IPerfumesRepository,
     @Inject('INVENTORY_REPOSITORY')
     private inventoryRepository: InventoryRepositoryInterface,
-    private readonly logger: Logger
+    private readonly logger: Logger,
   ) {}
 
   async findAllPerfumes(): Promise<Perfume[]> {
@@ -32,7 +40,7 @@ export class PerfumesService {
       this.logger.error(`Error finding all perfumes: ${error.message}`);
       throw new HttpException(
         'Error when getting the list of perfumes',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -52,7 +60,7 @@ export class PerfumesService {
       this.logger.error(`Error finding perfume by id ${id}: ${error.message}`);
       throw new HttpException(
         'Error when searching for perfume',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -62,46 +70,64 @@ export class PerfumesService {
       if (!perfume.name?.trim()) {
         throw new HttpException(
           'Perfume name is required',
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
-      const existingPerfume = await this.perfumesRepository.findPerfumeByName(perfume.name);
+      const existingPerfume = await this.perfumesRepository.findPerfumeByName(
+        perfume.name,
+      );
       if (existingPerfume) {
-          throw new ConflictException(`Another perfume with the name already exists: ${perfume.name}`);
+        throw new ConflictException(
+          `Another perfume with the name already exists: ${perfume.name}`,
+        );
       }
 
       const result = await this.perfumesRepository.createPerfume(perfume);
 
-      await Promise.all(Object.values(PerfumeSize).map(async (size) => {
-        await this.inventoryRepository.createInventory({
-          perfume: result.identifiers[0].id,
-          size: size as PerfumeSize,
-          stock: 0,
-          price: 0,
-        });
-      }));
-      this.logger.log(`Perfume created successfully with id: ${result.identifiers[0].id}`);
+      await Promise.all(
+        Object.values(PerfumeSize).map(async (size) => {
+          await this.inventoryRepository.createInventory({
+            perfume: result.identifiers[0].id,
+            size: size as PerfumeSize,
+            stock: 0,
+            price: 0,
+          });
+        }),
+      );
+      this.logger.log(
+        `Perfume created successfully with id: ${result.identifiers[0].id}`,
+      );
       return result;
     } catch (error) {
-      if (error instanceof HttpException || error instanceof ConflictException) {
+      if (
+        error instanceof HttpException ||
+        error instanceof ConflictException
+      ) {
         throw error;
       }
       this.logger.error(`Error creating perfume: ${error.message}`);
       throw new HttpException(
         'Error when creating perfume',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
-  async updatePerfume(id: number, perfume: UpdatePerfumeDto): Promise<UpdateResult> {
+  async updatePerfume(
+    id: number,
+    perfume: UpdatePerfumeDto,
+  ): Promise<UpdateResult> {
     this.logger.log(`Updating perfume ${id}: ${JSON.stringify(perfume)}`);
     try {
       await this.findPerfumeById(id);
       if (perfume.name) {
-        const existingPerfume = await this.perfumesRepository.findPerfumeByName(perfume.name);
+        const existingPerfume = await this.perfumesRepository.findPerfumeByName(
+          perfume.name,
+        );
         if (existingPerfume && existingPerfume.id !== id) {
-          throw new ConflictException(`Another perfume with the name already exists: ${perfume.name}`);
+          throw new ConflictException(
+            `Another perfume with the name already exists: ${perfume.name}`,
+          );
         }
       }
 
@@ -115,7 +141,7 @@ export class PerfumesService {
       this.logger.error(`Error updating perfume ${id}: ${error.message}`);
       throw new HttpException(
         'Error when updating perfume',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -124,7 +150,7 @@ export class PerfumesService {
     this.logger.log(`Deleting perfume by id: ${id}`);
     try {
       await this.findPerfumeById(id);
-      
+
       const result = await this.perfumesRepository.deletePerfume(id);
       this.logger.log(`Perfume ${id} deleted successfully`);
       return result;
@@ -135,7 +161,7 @@ export class PerfumesService {
       this.logger.error(`Error deleting perfume ${id}: ${error.message}`);
       throw new HttpException(
         'Error when deleting perfume',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

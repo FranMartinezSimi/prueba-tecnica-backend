@@ -10,9 +10,9 @@ import { Perfume } from './Perfume.entity';
 import { ApiTags } from '@nestjs/swagger';
 
 export enum PerfumeSize {
-  SMALL = 50,
-  MEDIUM = 100,
-  LARGE = 200,
+  SMALL = '50',
+  MEDIUM = '100',
+  LARGE = '200',
 }
 
 @Entity()

@@ -1,15 +1,24 @@
-import { HttpException, HttpStatus, Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { DeleteResult, InsertResult, LessThan, Raw, Repository, UpdateResult } from "typeorm";
-import { Inventory, PerfumeSize } from "../../../entities/Inventory.entity";
-import { InjectRepository } from "@nestjs/typeorm";
-import { InventoryRepositoryInterface } from "../interface/inventory.repository.interface";
-import { UpdateInventoryData } from "../dto/UpdateInventory.dto";
-import { CreateInventoryData } from "../dto/CreateInventory.dto";
-import { Perfume } from "@/entities/Perfume.entity";
-
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { InsertResult, Repository, UpdateResult } from 'typeorm';
+import { Inventory, PerfumeSize } from '../../../entities/Inventory.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { InventoryRepositoryInterface } from '../interface/inventory.repository.interface';
+import { UpdateInventoryData } from '../dto/UpdateInventory.dto';
+import { CreateInventoryData } from '../dto/CreateInventory.dto';
+import { Perfume } from '@/entities/Perfume.entity';
 
 @Injectable()
-export class InventoryRepository extends Repository<Inventory> implements InventoryRepositoryInterface {
+export class InventoryRepository
+  extends Repository<Inventory>
+  implements InventoryRepositoryInterface
+{
   constructor(
     @InjectRepository(Inventory)
     private inventoryRepository: Repository<Inventory>,
@@ -17,24 +26,30 @@ export class InventoryRepository extends Repository<Inventory> implements Invent
     private perfumeRepository: Repository<Perfume>,
     private readonly logger: Logger,
   ) {
-    super(inventoryRepository.target, inventoryRepository.manager, inventoryRepository.queryRunner);
+    super(
+      inventoryRepository.target,
+      inventoryRepository.manager,
+      inventoryRepository.queryRunner,
+    );
   }
   async findAllInventories(): Promise<Inventory[]> {
     return await this.inventoryRepository.find({
-      relations: ['perfume', 'perfume.brand']
+      relations: ['perfume', 'perfume.brand'],
     });
   }
 
   async findInventoryById(id: number): Promise<Inventory> {
-    return await this.inventoryRepository.findOne({ 
+    return await this.inventoryRepository.findOne({
       where: { id },
-      relations: ['perfume', 'perfume.brand']
+      relations: ['perfume', 'perfume.brand'],
     });
   }
 
-  async createInventory(createInventoryData: CreateInventoryData): Promise<InsertResult> {
-    const perfume = await this.perfumeRepository.findOne({ 
-      where: { id: createInventoryData.perfume }
+  async createInventory(
+    createInventoryData: CreateInventoryData,
+  ): Promise<InsertResult> {
+    const perfume = await this.perfumeRepository.findOne({
+      where: { id: createInventoryData.perfume },
     });
 
     if (!perfume) {
@@ -45,13 +60,24 @@ export class InventoryRepository extends Repository<Inventory> implements Invent
       perfume,
       size: createInventoryData.size,
       price: createInventoryData.price,
-      stock: createInventoryData.stock
+      stock: createInventoryData.stock,
     });
   }
 
-  async updateInventory(id: number, data: UpdateInventoryData): Promise<UpdateResult> {
+  async updateInventory(
+    id: number,
+    data: UpdateInventoryData,
+  ): Promise<UpdateResult> {
     this.logger.log(`Updating inventory with id: ${id}`);
-    return await this.inventoryRepository.update(id, data);
+    const inventory = await this.inventoryRepository.findOne({ where: { id } });
+    if (!inventory) {
+      throw new NotFoundException('Inventory not found');
+    }
+    return await this.inventoryRepository.update(id, {
+      size: data.size,
+      price: data.price,
+      stock: data.stock,
+    });
   }
 
   async updateStock(id: number, quantity: number): Promise<Inventory> {
@@ -78,7 +104,7 @@ export class InventoryRepository extends Repository<Inventory> implements Invent
     if (filters.query) {
       queryBuilder.andWhere(
         '(perfume.name ILIKE :query OR brand.name ILIKE :query)',
-        { query: `%${filters.query}%` }
+        { query: `%${filters.query}%` },
       );
     }
 
@@ -87,11 +113,15 @@ export class InventoryRepository extends Repository<Inventory> implements Invent
     }
 
     if (filters.minPrice) {
-      queryBuilder.andWhere('inventory.price >= :minPrice', { minPrice: filters.minPrice });
+      queryBuilder.andWhere('inventory.price >= :minPrice', {
+        minPrice: filters.minPrice,
+      });
     }
 
     if (filters.maxPrice) {
-      queryBuilder.andWhere('inventory.price <= :maxPrice', { maxPrice: filters.maxPrice });
+      queryBuilder.andWhere('inventory.price <= :maxPrice', {
+        maxPrice: filters.maxPrice,
+      });
     }
 
     if (filters.inStock) {

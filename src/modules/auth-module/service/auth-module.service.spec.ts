@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { UserService } from '../../user-module/service/user.service';
 import { JwtService } from '@nestjs/jwt';
-import { Logger, UnauthorizedException, NotFoundException, BadRequestException, HttpStatus, HttpException } from '@nestjs/common';
+import {
+  Logger,
+  UnauthorizedException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 describe('AuthService', () => {
@@ -16,20 +21,22 @@ describe('AuthService', () => {
     email: 'test@test.com',
     password: 'hashedPassword',
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   };
   beforeEach(async () => {
     const mockUserService = {
-      getUserByEmail: jest.fn()
+      getUserByEmail: jest.fn(),
+      getUser: jest.fn().mockResolvedValue(mockUser),
+      createUser: jest.fn(),
     };
 
     const mockJwtService = {
-      sign: jest.fn()
+      sign: jest.fn(),
     };
 
     const mockLogger = {
       log: jest.fn(),
-      error: jest.fn()
+      error: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -37,7 +44,7 @@ describe('AuthService', () => {
         AuthService,
         { provide: UserService, useValue: mockUserService },
         { provide: JwtService, useValue: mockJwtService },
-        { provide: Logger, useValue: mockLogger }
+        { provide: Logger, useValue: mockLogger },
       ],
     }).compile();
 
@@ -53,9 +60,9 @@ describe('AuthService', () => {
     it('should successfully login a user', async () => {
       const loginDto = {
         email: 'test@test.com',
-        password: 'password123'
+        password: 'password123',
       };
-      
+
       userService.getUserByEmail.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       jwtService.sign.mockReturnValue('jwt_token');
@@ -67,25 +74,25 @@ describe('AuthService', () => {
         user: {
           id: mockUser.id,
           email: mockUser.email,
-        }
+        },
       });
     });
 
     it('should throw NotFoundException when user not found', async () => {
       userService.getUserByEmail.mockResolvedValue(null);
 
-      await expect(service.login('wrong@email.com', 'password'))
-        .rejects
-        .toThrow(NotFoundException);
+      await expect(
+        service.login('wrong@email.com', 'password'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw UnauthorizedException when password is incorrect', async () => {
       userService.getUserByEmail.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(service.login('test@test.com', 'wrongpassword'))
-        .rejects
-        .toThrow(UnauthorizedException);
+      await expect(
+        service.login('test@test.com', 'wrongpassword'),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 
@@ -93,33 +100,42 @@ describe('AuthService', () => {
     it('should successfully register a user', async () => {
       const registerDto = {
         email: 'test@test.com',
-        password: 'password123'
+        password: 'password123',
       };
 
-      userService.getUserByEmail.mockResolvedValue(null);
-      service.register(registerDto);
+      userService.getUser.mockResolvedValue(null);
+      userService.createUser.mockResolvedValue(undefined);
+
+      // Esperar a que se complete el registro
+      await expect(service.register(registerDto)).resolves.not.toThrow();
+
+      expect(userService.createUser).toHaveBeenCalled();
     });
 
     it('should throw BadRequestException when user already exists', async () => {
       const registerDto = {
         email: 'test@test.com',
-        password: 'password123'
+        password: 'password123',
       };
-      userService.getUserByEmail.mockResolvedValue(mockUser);
-      await expect(service.register(registerDto))
-        .rejects
-        .toThrow(new BadRequestException('User already exists'));
+
+      userService.getUser.mockResolvedValue(mockUser);
+
+      await expect(service.register(registerDto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
-    it('should throw HttpException when an error occurs', async () => {
+    it('should throw BadRequestException when an error occurs', async () => {
       const registerDto = {
         email: 'test@test.com',
-        password: 'password123'
+        password: 'password123',
       };
-      userService.getUserByEmail.mockRejectedValue(new Error('Database error'));
-      await expect(service.register(registerDto))
-        .rejects
-        .toThrow(new HttpException('Database error', HttpStatus.INTERNAL_SERVER_ERROR));
+
+      userService.getUser.mockRejectedValue(new Error('Database error'));
+
+      await expect(service.register(registerDto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });

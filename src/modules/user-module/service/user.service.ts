@@ -20,6 +20,16 @@ export class UserService {
     private readonly logger: Logger,
   ) {}
 
+  async getUser(email: string): Promise<User> {
+    this.logger.log('Searching User');
+    try {
+      return await this.userRepository.findByEmail(email);
+    } catch (error) {
+      this.logger.error(`Error finding user`);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   async getUserByEmail(email: string): Promise<User> {
     this.logger.log(`Finding user by email: ${email}`);
     try {

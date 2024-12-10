@@ -94,7 +94,7 @@ export class InventoryRepository
       return this.inventoryRepository
         .createQueryBuilder('inventory')
         .delete()
-        .where('perfumeId = :id', { id })
+        .where('id = :id', { id })
         .execute();
     } catch (error) {
       this.logger.error(`Error ${error} deleting inventory with id: ${id}`);

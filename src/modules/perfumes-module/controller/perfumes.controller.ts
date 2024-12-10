@@ -22,10 +22,8 @@ import { AuthGuard } from '../../../guards/Auth.guard';
 @ApiTags('Perfumes')
 @Controller('perfumes')
 export class PerfumesController {
-  constructor(
-    private readonly perfumesService: PerfumesService,
-    private readonly logger: Logger,
-  ) {}
+  private readonly logger = new Logger(PerfumesController.name);
+  constructor(private readonly perfumesService: PerfumesService) {}
 
   @HttpCode(HttpStatus.OK)
   @Get()

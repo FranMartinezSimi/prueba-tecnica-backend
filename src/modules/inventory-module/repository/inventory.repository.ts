@@ -6,7 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InsertResult, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, InsertResult, Repository, UpdateResult } from 'typeorm';
 import { Inventory, PerfumeSize } from '../../../entities/Inventory.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InventoryRepositoryInterface } from '../interface/inventory.repository.interface';
@@ -87,6 +87,28 @@ export class InventoryRepository
     }
     inventory.stock = quantity;
     return await this.inventoryRepository.save(inventory);
+  }
+
+  async deleteInventory(id: number): Promise<DeleteResult> {
+    try {
+      return this.inventoryRepository
+        .createQueryBuilder('inventory')
+        .delete()
+        .where('perfumeId = :id', { id })
+        .execute();
+    } catch (error) {
+      this.logger.error(`Error ${error} deleting inventory with id: ${id}`);
+      throw new HttpException(
+        'Error when deleting inventory',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  async findInventoryByPerfumeId(id: number): Promise<Inventory> {
+    return await this.inventoryRepository
+      .createQueryBuilder('inventory')
+      .where('inventory.perfumeId = :id', { id })
+      .getOne();
   }
 
   async searchInventory(filters: {

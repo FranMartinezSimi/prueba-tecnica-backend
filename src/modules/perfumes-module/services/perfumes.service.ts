@@ -17,12 +17,12 @@ import { PerfumeSize } from '../../../entities/Inventory.entity';
 
 @Injectable()
 export class PerfumesService {
+  private readonly logger = new Logger(PerfumesService.name);
   constructor(
     @Inject('PERFUMES_REPOSITORY')
     private perfumesRepository: IPerfumesRepository,
     @Inject('INVENTORY_REPOSITORY')
     private inventoryRepository: InventoryRepositoryInterface,
-    private readonly logger: Logger,
   ) {}
 
   async findAllPerfumes(): Promise<Perfume[]> {
@@ -149,11 +149,15 @@ export class PerfumesService {
   async deletePerfume(id: number): Promise<DeleteResult> {
     this.logger.log(`Deleting perfume by id: ${id}`);
     try {
-      await this.findPerfumeById(id);
-
-      const result = await this.perfumesRepository.deletePerfume(id);
-      this.logger.log(`Perfume ${id} deleted successfully`);
-      return result;
+      const inventory =
+        await this.inventoryRepository.findInventoryByPerfumeId(id);
+      if (inventory) {
+        throw new HttpException(
+          'Cannot delete perfume with inventory',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      return await this.perfumesRepository.deletePerfume(id);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;

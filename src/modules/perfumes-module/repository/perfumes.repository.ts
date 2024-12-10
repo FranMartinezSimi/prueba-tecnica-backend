@@ -7,11 +7,14 @@ import { UpdatePerfumeDto } from '../dto/updatePerfume.dto';
 import { IPerfumesRepository } from '../interfaces/perfumes.repository.interface';
 
 @Injectable()
-export class PerfumesRepository extends Repository<Perfume> implements IPerfumesRepository {
+export class PerfumesRepository
+  extends Repository<Perfume>
+  implements IPerfumesRepository
+{
+  private readonly logger = new Logger(PerfumesRepository.name);
   constructor(
     @InjectRepository(Perfume)
     private perfumeRepository: Repository<Perfume>,
-    private readonly logger: Logger,
   ) {
     super(
       perfumeRepository.target,
@@ -50,7 +53,10 @@ export class PerfumesRepository extends Repository<Perfume> implements IPerfumes
     }
   }
 
-  async updatePerfume(id: number, perfume: UpdatePerfumeDto): Promise<UpdateResult> {
+  async updatePerfume(
+    id: number,
+    perfume: UpdatePerfumeDto,
+  ): Promise<UpdateResult> {
     this.logger.log(`Updating perfume by id: ${id}`);
     try {
       return this.perfumeRepository.update(id, perfume);

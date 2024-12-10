@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Body,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { InventoryService } from '../service/inventory.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -115,6 +116,23 @@ export class InventoryController {
     return Response.success(
       'Inventarios encontrados exitosamente',
       inventories,
+      HttpStatus.OK,
+    );
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Eliminar un inventario' })
+  @ApiResponse({
+    status: 200,
+    description: 'Inventario eliminado exitosamente',
+  })
+  @ApiResponse({ status: 500, description: 'Error interno del servidor' })
+  async deleteInventory(@Param('id') id: number): Promise<Response> {
+    this.logger.log(`Deleting inventory with id: ${id}`);
+    await this.inventoryService.deleteInventory(id);
+    return Response.success(
+      'Inventario eliminado exitosamente',
+      null,
       HttpStatus.OK,
     );
   }
